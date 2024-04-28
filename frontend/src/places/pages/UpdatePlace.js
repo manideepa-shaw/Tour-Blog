@@ -126,7 +126,7 @@ export const UpdatePlace = () => {
           throw Error(responseData.message)
       }
       setisLoading(false)
-      history.push('/' + auth.userID + '/places')//to redirect to the this page
+      history.push('/' + auth.userId + '/places')//to redirect to the this page
   }
   catch(err)
   {

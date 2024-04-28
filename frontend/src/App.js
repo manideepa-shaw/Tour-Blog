@@ -33,10 +33,10 @@ function App() {
         <Route exact path="/">
             <Users />
           </Route>
-          <Route path="/:userId/places">
+          <Route path="/:userId/places" exact>
           <UserPlaces/>
           </Route>
-          <Route exact path="/places/new">
+          <Route exact path="/places/new" >
             <NewPlace />
           </Route>
           <Route exact path="/places/:placeId">

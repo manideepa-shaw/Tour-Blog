@@ -19,7 +19,6 @@ export const UserPlaces = () => {
       try{
         setisLoading(true)
         const res = await fetch('http://localhost:5000/api/places/user/'+userId)
-        console.log("Here")
   
         const responseData = await res.json()
   
@@ -38,7 +37,10 @@ export const UserPlaces = () => {
         seterror(err.message || 'Couldnot get Places of the user!!!')
      }
     }
-  }, [])
+  }, [userId])
+  const placeDeletedHandler = (deletedPlace) => {
+    setloadedPlace(prevPlaces => prevPlaces.filter(place => place.id!==deletedPlace.id))
+  }
   const errorHandler = ()=>{
     seterror(null)
   }
@@ -46,7 +48,7 @@ export const UserPlaces = () => {
     <>
     {error && <ErrorModal onClear={errorHandler}/>}
     {isLoading && <LoadingSpinner asOverlay/>}
-    <PlaceList items={loadedPlace}/>
+    <PlaceList items={loadedPlace} onDeletePlace={placeDeletedHandler} />
     </>
   )
 }

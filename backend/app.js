@@ -1,4 +1,6 @@
 const express = require('express')
+const fs = require('fs')
+const path=require('path')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 
@@ -17,6 +19,9 @@ app.use((req,res,next)=>{
     next()
 })
 
+// middleware to handle images
+app.use("/uploads/images",express.static(path.join('uploads','images'))) //express.static returns the requested file
+
 app.use("/api/places",placesRoute)
 
 app.use("/api/users",usersRoute)
@@ -29,6 +34,14 @@ app.use((req,res,next)=>{
 })
 
 app.use((err,req,res,next)=>{
+    // to delete the images if user not successfully signed up
+    if(req.file)
+    {
+        fs.unlink(req.file.path, (err)=>{
+            console.log(err)
+        })
+    }
+
     // to check if the response has been sent to the header
     if(res.headerSent)
     {
@@ -39,7 +52,6 @@ app.use((err,req,res,next)=>{
 })
 
 // app.listen(5000)
-
 mongoose.connect("mongodb+srv://mani:bntRbO5J5YW1h5CH@cluster0.icxcrv1.mongodb.net/mern?retryWrites=true&w=majority&appName=Cluster0")
 .then(()=>{
     console.log('Connected')

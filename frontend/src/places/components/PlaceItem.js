@@ -1,29 +1,50 @@
 import React, { useContext, useState } from 'react'
 import Card from "../../shared/components/UIElements/Card"
 import Button from "../../shared/components/FormElements/Button"
+import { useHistory } from 'react-router-dom';
 import "./PlaceItem.css"
 import Modal from '../../shared/components/UIElements/Modal'
 import { AuthContext } from '../../shared/context/auth-context'
 import { useEffect } from 'react'
+import ErrorModal from '../../shared/components/UIElements/ErrorModal'
+import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner'
 
 export const PlaceItem = (props) => {
   const auth = useContext(AuthContext);
   const [showMap, setshowMap] = useState(false)
   const [showConfirm, setshowConfirm] = useState(false)
+  const [error, seterror] = useState(null)
+  const [isLoading, setisLoading] = useState(false)
   const openMap = ()=> setshowMap(true)
   const closeMap = ()=> setshowMap(false)
   const showDeleteWarningHandler = () => {
     setshowConfirm(true);
   }
   const cancelDeleteHandler = () => setshowConfirm(false)
-  const confirmDeleteHandler = ()=> {
+  const history = useHistory()
+  const confirmDeleteHandler = async()=> {
     console.log("Delteing...")
+    try{
+      setisLoading(true)
+      seterror(null)
+      const res=await fetch('http://localhost:5000/api/places/'+props.id , { 
+          method : 'DELETE'
+      })
+      props.onDelete(props.id)
+      setisLoading(false)
+      history.push('/'+props.id+'/places')
+    }
+      catch(err)
+      {
+        setisLoading(false)
+      }
     setshowConfirm(false)
   }
   
   return (
     <React.Fragment>
       {/* {console.log(props.creatorID,auth.userID)} */}
+  { error && <ErrorModal error={error} onClear={()=>{seterror(null)}} /> }
     <Modal show={showMap} onCancel={closeMap} header={props.address} contentClass="place-item__modal-content" footerClass="place-item__modal-actions" 
     footer={ <Button onClick={closeMap}> CLOSE </Button> 
   } >
@@ -46,8 +67,9 @@ export const PlaceItem = (props) => {
     </Modal>
     <li className="place-item">
         <Card className="place-item__content">
+        { isLoading && <LoadingSpinner asOverlay /> }
         <div className="place-item__image">
-            <img src={props.image} alt={props.title} />
+            <img src={`http://localhost:5000/${props.image}`} alt={props.title} />
             { console.log(props.image) }
         </div>
         <div className="place-item__info">
@@ -57,8 +79,8 @@ export const PlaceItem = (props) => {
         </div>
         <div className="place-item__actions">
             <Button inverse onClick={openMap}>VIEW ON MAP</Button>
-            {auth.isLoggedIn && <Button to={`/places/${props.id}`}>EDIT</Button>}
-            {auth.isLoggedIn && <Button danger onClick={showDeleteWarningHandler}>DELETE</Button>}
+            {auth.isLoggedIn && props.creatorID===auth.userId && <Button to={`/places/${props.id}`}>EDIT</Button>}
+            {auth.isLoggedIn && props.creatorID===auth.userId && <Button danger onClick={showDeleteWarningHandler}>DELETE</Button>}
             
         </div>
         </Card>

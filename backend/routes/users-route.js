@@ -93,7 +93,9 @@
 // mongoose logic
 const express = require('express')
 const User = require('../models/user')
+const {v4 : uuidv4} = require('uuid')
 const { check, validationResult} = require('express-validator')
+const fileUpload = require('../middleware/file-upload')
 
 const route=express.Router()
 
@@ -111,6 +113,7 @@ route.get('/',async(req,res,next)=>{
 })
 
 route.post('/signup',
+fileUpload.single('image'),   //using multer
 [
     check('name').not().isEmpty(),
     check('email').isEmail().normalizeEmail(),
@@ -121,7 +124,8 @@ route.post('/signup',
         minNumbers:1,
         minSymbols:1
       })
-],async(req,res,next)=>{
+],
+async(req,res,next)=>{
     // extra lines of codee when using external validator
     const error = validationResult(req)
     if(!error.isEmpty())
@@ -154,7 +158,7 @@ route.post('/signup',
         name,
         email,
         password,
-        image:"https://static.toiimg.com/photo/71579199/empire-state-building.jpg?width=748&resize=4",
+        image: req.file.path,
         places:[]
     })
     try{
@@ -162,13 +166,13 @@ route.post('/signup',
     }
     catch(error)
     {
-        console.log(error)
+        // console.log(error)
         const err=new Error('Signing Up failed! Try again later!')
         err.code=500
         return next(err)
     }
     res.status(200).json({message:"User Signup successfull",
-    user: newuser.toObject( { getters:true } ) })
+    user: newuser.toObject( { getters:true },'-password' ) })
 })
 
 route.post('/login',async(req,res,next)=>{

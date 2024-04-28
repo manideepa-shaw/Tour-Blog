@@ -27,6 +27,7 @@ export const PlaceList = (props) => {
                 address={place.address}
                 creatorID={place.creator}
                 coordinates={place.location}
+                onDelete={props.onDeletePlace}
                 /> )
             }
             {/* { console.log("Passing : "+props.items[0].location.lat ) } */}

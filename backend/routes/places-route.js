@@ -5,6 +5,8 @@ const {v4 : uuidv4} = require('uuid') //v4 is the version
 const getCoordsForAddress = require('../utils/location')
 const Place = require('../models/place')
 const User = require('../models/user')
+const fs = require('fs')
+const fileUpload = require("../middleware/file-upload")
 
 
 const route=express.Router()
@@ -102,6 +104,7 @@ route.get('/user/:userId',async(req,res,next)=>{
 // here we are using check to ensure that the inputs are not empty. We can even do it manually
 //but this way the code looks cleaner
 route.post('/',
+fileUpload.single('image'),
 [check('title').not().isEmpty(),
 check('description').isLength({min:5}),
 check('address').not().isEmpty(),
@@ -133,7 +136,7 @@ async(req,res,next)=>{
     location: coordinates,
     address,
     creator,
-    imageUrl:"https://static.toiimg.com/photo/71579199/empire-state-building.jpg?width=748&resize=4"
+    imageUrl: req.file.path
   })
 
   let findcreator;
@@ -155,6 +158,9 @@ async(req,res,next)=>{
     return next(error)
   }
 
+  // to clean the deleted places image
+  const imagePath = place.image
+
   // place.push(createdPlace)
   try{
     // await createdPlace.save() //mongo line
@@ -172,7 +178,13 @@ async(req,res,next)=>{
     error.code=500
     return next(error)
   }
-  res.status(201).json({place: createdPlace})
+
+  fs.unlink(imagePath, err => {
+    console.log('Image not deleted!!!')
+    console.log(err)
+  })
+
+  res.status(200).json({place: createdPlace})
 })
 
 // node code

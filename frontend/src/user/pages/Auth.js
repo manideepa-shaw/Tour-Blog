@@ -9,6 +9,7 @@ import Button from '../../shared/components/FormElements/Button'
 import { AuthContext } from '../../shared/context/auth-context'
 import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner'
 import ErrorModal from '../../shared/components/UIElements/ErrorModal'
+import ImageUpload from '../../shared/components/FormElements/ImageUpload'
 
 
 export const Auth = () => {
@@ -71,17 +72,28 @@ export const Auth = () => {
             {
                 setisLoading(true)
                 seterror(null)
-                const res = await fetch('http://localhost:5000/api/users/signup', { 
+            //     const res = await fetch('http://localhost:5000/api/users/signup', { 
+            //     method : 'POST',
+            //     headers : {
+            //         'Content-type': 'application/json'
+            //     },
+            //     body :JSON.stringify({
+            //         name : formState.inputs.name.value,
+            //         email : formState.inputs.email.value,
+            //         password : formState.inputs.password.value
+            //     })
+            // })
+
+            const formData = new FormData() //using to to upload pictues
+            formData.append('name',formState.inputs.name.value)
+            formData.append('email',formState.inputs.email.value)
+            formData.append('password',formState.inputs.password.value)
+            formData.append('image',formState.inputs.image.value) //we have used 'image' in fileUpload.single('image') in users-route.js
+            const res = await fetch('http://localhost:5000/api/users/signup', { 
                 method : 'POST',
-                headers : {
-                    'Content-type': 'application/json'
-                },
-                body :JSON.stringify({
-                    name : formState.inputs.name.value,
-                    email : formState.inputs.email.value,
-                    password : formState.inputs.password.value
-                })
+                body : formData
             })
+
             const responsedata = await res.json()
             if(!res.ok)
             {
@@ -107,7 +119,8 @@ export const Auth = () => {
         {
             setFormData({
                 ...formState.inputs,
-                name:undefined
+                name:undefined,
+                image:undefined
             },formState.inputs.email.isValid && formState.inputs.password.isValid)
         }
         else{
@@ -115,6 +128,10 @@ export const Auth = () => {
                 ...formState.inputs,
                 name:{
                     value:'',
+                    isValid:false
+                },
+                image:{
+                    value:null,
                     isValid:false
                 }
             },false)
@@ -139,6 +156,9 @@ export const Auth = () => {
                 errorText="Please enter a name"
                 onInput={inputHandler}
             />}
+
+            {!login && <ImageUpload center onInput={inputHandler} id="image" errorText="Please provide an image" /> }
+
             <Input element="input" id="email" type="email" label="E-Mail" 
             validators={[VALIDATOR_EMAIL()]}
             errorText="Please enter valid email."
