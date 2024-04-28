@@ -158,9 +158,6 @@ async(req,res,next)=>{
     return next(error)
   }
 
-  // to clean the deleted places image
-  const imagePath = place.image
-
   // place.push(createdPlace)
   try{
     // await createdPlace.save() //mongo line
@@ -178,11 +175,6 @@ async(req,res,next)=>{
     error.code=500
     return next(error)
   }
-
-  fs.unlink(imagePath, err => {
-    console.log('Image not deleted!!!')
-    console.log(err)
-  })
 
   res.status(200).json({place: createdPlace})
 })
@@ -278,6 +270,8 @@ route.delete('/:pid',async(req,res,next)=>{
     err.code=404
     return next(err)
   }
+  // to clean the deleted places image
+  const imagePath = findplace.imageUrl
   try{
     // we use transaction ans session because I need all these tasks to make changes only when all of them are executed 
     const session = await mongoose.startSession()
@@ -293,6 +287,10 @@ route.delete('/:pid',async(req,res,next)=>{
     error.code = 500
     return next(error)
   }
+  fs.unlink(imagePath, err => {
+    console.log('Image not deleted!!!')
+    console.log(err)
+  })
   res.status(200).json({message : "Deleted place"})
 })
 
