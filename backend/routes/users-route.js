@@ -92,9 +92,11 @@
 
 // mongoose logic
 const express = require('express')
+const jwt = require('jsonwebtoken')
 const User = require('../models/user')
 const {v4 : uuidv4} = require('uuid')
-const { check, validationResult} = require('express-validator')
+const { check, validationResult, ExpressValidator} = require('express-validator')
+const bcrypt = require('bcryptjs')
 const fileUpload = require('../middleware/file-upload')
 
 const route=express.Router()
@@ -136,6 +138,7 @@ async(req,res,next)=>{
         return next(err)
     }
     //
+    
     const {name , email, password}=req.body
     let existingUser;
     try{
@@ -154,10 +157,21 @@ async(req,res,next)=>{
         err.code=422
         return next(err)
     }
+    let hashedPassword ;
+    try
+    {
+        hashedPassword = await bcrypt.hash(password, 12)//12 is the number of salting round
+    }
+    catch(err)
+    {
+        const error = new Error('Could not create user!')
+        error.code=500
+        return next(error)
+    }
     const newuser = new User({
         name,
         email,
-        password,
+        password : hashedPassword,
         image: req.file.path,
         places:[]
     })
@@ -166,11 +180,13 @@ async(req,res,next)=>{
     }
     catch(error)
     {
-        // console.log(error)
+        console.log(error)
         const err=new Error('Signing Up failed! Try again later!')
         err.code=500
         return next(err)
     }
+    
+
     res.status(200).json({message:"User Signup successfull",
     user: newuser.toObject( { getters:true },'-password' ) })
 })
@@ -195,7 +211,20 @@ route.post('/login',async(req,res,next)=>{
         next(err)
     }
     else{
-        if(existingUser.password!=password)
+        let isValidPassword;
+        // x=await bcrypt.hash(password, 12)
+        // console.log(x,existingUser.password)
+        try
+        {
+            isValidPassword = await bcrypt.compare(password, existingUser.password)
+        }
+        catch(err)
+        {
+            const error = new Error("Could not log you in! Some error occured")
+            error.code=500
+            return next(error)
+        }
+        if(!isValidPassword)
         {
             const err = new Error("Incorrect password!")
             err.code=404
