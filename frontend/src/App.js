@@ -12,20 +12,21 @@ import { AuthContext } from './shared/context/auth-context';
 import React, { useState,useCallback } from 'react';
 
 function App() {
-  const [isLoggedIn, setisLoggedIn] = useState(false)
+  const [isToken, setisToken] = useState(null)
   const [userId, setuserId] = useState(null)
-  const logging = useCallback((uid)=>{
-    setisLoggedIn(true)
+  const logging = useCallback((uid,token)=>{
+    setisToken(token)
     setuserId(uid)
   },[])
 
   const logout = useCallback(()=>{
     setuserId(null)
-    setisLoggedIn(false)
+    // setisLoggedIn(false)
+    setisToken(null)
   },[])
 
   let routes;
-  if(isLoggedIn)
+  if(isToken)
   {
     
     routes=(
@@ -62,7 +63,8 @@ function App() {
   }
   return (
     <div className="App">
-        <AuthContext.Provider value={{isLoggedIn:isLoggedIn,
+        <AuthContext.Provider value={{isLoggedIn: !!isToken,
+        token : isToken,
         logging : logging,
         logout : logout,
         userId : userId

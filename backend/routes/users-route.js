@@ -185,10 +185,27 @@ async(req,res,next)=>{
         err.code=500
         return next(err)
     }
-    
+    // jwt 
+    let token;
+    try
+    {
+        token=jwt.sign({userId : newuser.id, email : newuser.email},
+            'myprivatekey',
+            {expiresIn : '1hr'}) //sign returns a string in the end and this will be the generated token 
+        //the first argument of this sign is the payload i.e.,  the data that we want to encode into the token
+    }
+    catch(error)
+    {
+        console.log(error)
+        const err=new Error('Signing Up failed! Try again later!')
+        err.code=500
+        return next(err)
+    }
 
-    res.status(200).json({message:"User Signup successfull",
-    user: newuser.toObject( { getters:true },'-password' ) })
+    // res.status(200).json({message:"User Signup successfull",
+    // user: newuser.toObject( { getters:true },'-password' ) })
+
+    res.status(200).json({userId: newuser.id, email : newuser.email, token:token})
 })
 
 route.post('/login',async(req,res,next)=>{
@@ -230,8 +247,28 @@ route.post('/login',async(req,res,next)=>{
             err.code=404
             return next(err)
         }
-        res.status(200).json({message : "Logged In!", 
-        user: existingUser.toObject( { getters:true } )})
+
+        // jwt 
+        let token;
+        try
+        {
+            token=jwt.sign({userId : existingUser.id, email : existingUser.email},
+                'myprivatekey',
+                {expiresIn : '1hr'}) //sign returns a string in the end and this will be the generated token 
+            //the first argument of this sign is the payload i.e.,  the data that we want to encode into the token
+        }
+        catch(error)
+        {
+            console.log(error)
+            const err=new Error('Could not log you in! Some error occured')
+            err.code=500
+            return next(err)
+        }
+
+        // res.status(200).json({message : "Logged In!", 
+        // user: existingUser.toObject( { getters:true } )})
+
+        res.status(200).json({userId: existingUser.id, email : existingUser.email, token:token})
     }
 })
 

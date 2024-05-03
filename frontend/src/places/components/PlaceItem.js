@@ -28,7 +28,8 @@ export const PlaceItem = (props) => {
       setisLoading(true)
       seterror(null)
       const res=await fetch('http://localhost:5000/api/places/'+props.id , { 
-          method : 'DELETE'
+          method : 'DELETE',
+          headers : { 'Authorization': 'Bearer '+auth.token }
       })
       props.onDelete(props.id)
       setisLoading(false)

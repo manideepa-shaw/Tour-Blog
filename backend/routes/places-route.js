@@ -7,6 +7,7 @@ const Place = require('../models/place')
 const User = require('../models/user')
 const fs = require('fs')
 const fileUpload = require("../middleware/file-upload")
+const checkAuth = require('../middleware/check-auth')
 
 
 const route=express.Router()
@@ -101,6 +102,14 @@ route.get('/user/:userId',async(req,res,next)=>{
         // res.end("<h1>No such user exists!</h1>")
     }
 })
+
+// to check if the post request that is being sent has a valid token that is the(only logged in user can send post request)
+
+route.use(checkAuth)
+
+//
+
+
 // here we are using check to ensure that the inputs are not empty. We can even do it manually
 //but this way the code looks cleaner
 route.post('/',
@@ -222,6 +231,27 @@ check('description').isLength({min:5})
     return next(err)
   }
   //
+
+  // adding extra level of security so that nboone can edit some other personms datA from backend(postman) also
+  let temp;
+  try
+  {
+    temp = await Place.findById(req.params.pid)
+  }
+  catch(error)
+  {
+    const err=new Error('Could not find data')
+    err.code=422
+    return next(err)
+  }
+  if(temp.creator.toString()!==req.userData.userId)
+  {
+    const err=new Error('You are not authorized to edit this place')
+    err.code=401
+    return next(err)
+  }
+  // 
+
   const { title, description }=req.body;
   const placeId = req.params.pid
   let updatedPlace;
@@ -270,6 +300,17 @@ route.delete('/:pid',async(req,res,next)=>{
     err.code=404
     return next(err)
   }
+
+  // adding extra level of security so that nboone can edit some other personms datA from backend(postman) also
+  //findplace.creator.id because we have getters
+  if(findplace.creator.id!==req.userData.userId)
+  {
+    const err=new Error('You are not authorized to delete this place')
+    err.code=401
+    return next(err)
+  }
+  //
+
   // to clean the deleted places image
   const imagePath = findplace.imageUrl
   try{

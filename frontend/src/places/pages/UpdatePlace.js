@@ -113,7 +113,8 @@ export const UpdatePlace = () => {
       const res=await fetch('http://localhost:5000/api/places/'+placeId, { 
           method : 'PATCH',
           headers : {
-              'Content-type': 'application/json'
+              'Content-type': 'application/json',
+              'Authorization': 'Bearer '+auth.token
           },
           body :JSON.stringify({
               title : formState.inputs.title.value,

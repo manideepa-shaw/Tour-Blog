@@ -59,7 +59,8 @@ export const Auth = () => {
                 // console.log(responseData.user.id)
                 setisLoading(false)
                 // console.log("responseData => "+responseData.user._id)
-                auth.logging(responseData.user.id);
+                // auth.logging(responsedata.user.id);
+                auth.logging(responseData.userId, responseData.token);
             }
             catch(err)
             {
@@ -101,7 +102,8 @@ export const Auth = () => {
             }
             console.log(responsedata)
             setisLoading(false)
-            auth.logging(responsedata.user.id);
+            // auth.logging(responsedata.user.id);
+            auth.logging(responsedata.userId,responsedata.token);
             }
             catch(err)
             {

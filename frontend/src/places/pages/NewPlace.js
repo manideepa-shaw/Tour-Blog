@@ -52,7 +52,8 @@ const NewPlace = () => {
       formData.append('image',formState.inputs.image.value)
       const res=await fetch('http://localhost:5000/api/places', { 
           method : 'POST',
-          body : formData
+          body : formData,
+          headers : { Authorization : 'Bearer '+auth.token }
       })
       const responseData=await res.json()
       if(!res.ok)
