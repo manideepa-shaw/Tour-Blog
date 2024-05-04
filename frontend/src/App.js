@@ -9,21 +9,65 @@ import { UserPlaces } from './places/pages/UserPlaces';
 import { UpdatePlace } from './places/pages/UpdatePlace';
 import { Auth } from './user/pages/Auth';
 import { AuthContext } from './shared/context/auth-context';
-import React, { useState,useCallback } from 'react';
+import React, { useState,useCallback, useEffect } from 'react';
+
+let logoutTimer;
 
 function App() {
   const [isToken, setisToken] = useState(null)
   const [userId, setuserId] = useState(null)
-  const logging = useCallback((uid,token)=>{
+  const [tokenExpirationDateTime, settokenExpirationDateTime] = useState()
+
+  const logging = useCallback((uid,token, expirationDate)=>{
+    // to expire the localStorage after 1h
+    const tokenExpirationDate = expirationDate || new Date(new Date().getTime() + 1000 * 60 *60)
+    settokenExpirationDateTime(tokenExpirationDate)
+
     setisToken(token)
     setuserId(uid)
+
+    // setting token in the localStorage
+    localStorage.setItem(
+    'userData',
+    JSON.stringify({userId : uid,
+       token: token,
+       expiration : tokenExpirationDate.toISOString()
+      })
+    )
+
   },[])
 
   const logout = useCallback(()=>{
     setuserId(null)
     // setisLoggedIn(false)
     setisToken(null)
+    settokenExpirationDateTime(null)
+
+    localStorage.removeItem('userData')
   },[])
+
+  // using this so that the user is automatically logged out when the time is more than 1hr
+  useEffect(() => {
+    if(isToken && tokenExpirationDateTime)
+    {
+      const remainingTime = tokenExpirationDateTime.getTime() - new Date().getTime()
+      logoutTimer = setTimeout(logout,remainingTime)
+    }
+    else
+    {
+      clearTimeout(logoutTimer)
+    }
+  }, [isToken,logout,tokenExpirationDateTime])
+
+  // using localStorage data so that when the page reloads the data isn't lost
+  useEffect(() => {
+    const storedData = JSON.parse(localStorage.getItem('userData'))
+    if(storedData && storedData.token && new Date(storedData.expiration)>new Date() )
+    {
+      logging(storedData.userId, storedData.token)
+    }
+  }, [logging])
+  
 
   let routes;
   if(isToken)
